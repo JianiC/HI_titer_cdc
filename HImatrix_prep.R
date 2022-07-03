@@ -33,7 +33,8 @@ uga_titer_2020_H3%>%
   mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
   distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
   select(ag_strain_name,sr_strain_name,titer_value)%>%
-  spread(key = "sr_strain_name", value = "titer_value")->test_matrix2
+  spread(key = "sr_strain_name", value = "titer_value")%>%
+  mutate_all(~replace(., is.na(.), "*"))->test_matrix2
 
 
 uga_titer_2020_H3%>%
@@ -42,3 +43,28 @@ uga_titer_2020_H3%>%
   select(ag_strain_name,sr_strain_name,titer_value)%>%
   group_by(ag_strain_name)%>%
   summarise(count=n())-> HI_strain_count
+
+
+
+
+
+uga_titer_2020_H3%>%
+  mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
+  distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
+  select(ag_strain_name,sr_strain_name,titer_value)%>%
+  group_by(sr_strain_name)%>%
+  summarise(count=n())-> sr_strain_count
+
+## get strain name 
+
+uga_titer_2020_H3%>%
+  mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
+  distinct(ag_strain_name,.keep_all= TRUE)%>%
+  mutate(ag_strain_taxa=paste0(ag_epi_isolate_id,"|",ag_strain_name))->uga_titer_2020_H3
+
+write.table(uga_titer_2020_H3$ag_strain_taxa,"HI_titer_strain.txt",sep="\t",row.names=FALSE)
+
+write.csv(test_matrix2,"2010_2020_raw_titer.csv",row.names = FALSE)
+
+################################################################
+## filter the sequence with high accuracy
