@@ -1,23 +1,53 @@
-titertable <- read.titerTable("2010_2020_raw_titer_filter.csv")
+source("setup.R")
 
-map <- acmap(table = titertable)
-map <- optimizeMap(
-  map = map,
+
+titertable <- read.titerTable("2010_2020_raw_titer_filter.csv")
+titertable2 <- read.titerTable("2010_2020_raw_titer_filter2.csv")
+map2 <- acmap(table = titertable2)
+map2 <- optimizeMap(
+  map = map2,
   number_of_dimensions = 2,
-  number_of_optimizations = 500,
+  number_of_optimizations = 5000,
   minimum_column_basis = "none"
 )
 selectedOptimization(map)
 
-view(map)
+view(map2)
+
+## diagnostics
+
+agCohesion(map)
+
+srCohesion(map)
+
+mapCohesion(map)
 
 
+checkHemisphering(
+  map2,
+  optimization_number = 1,
+  grid_spacing = 0.25,
+  stress_lim = 0.1,
+  options = list()
+)
+
+## dimension test 
+dimensionTestMap(
+  map2,
+  dimensions_to_test = 1:5,
+  test_proportion = 0.1,
+  minimum_column_basis = "none",
+  fixed_column_bases = rep(NA, numSera(map2)),
+  number_of_optimizations = 100,
+  replicates_per_dimension = 100,
+  options = list()
+)
 
 antigentic_distance<-mapDistances(map)
 
 ## add color 
 agCoords(map, optimization_number = 1)%>%
-  mutate()
+  setNames(c("ag_name","Dim1","Dim2"))%>%
   merge(uga_titer_strain_filteryear,by=c("ag_strain_name","ag_strain_name"))
-  ggplot(aes(),color=ag_colelction_year)+
+  ggplot(aes(x=Dim1,y=Dim2,group=ag_collection_year, color=ag_colelction_year))+
   geom_point()
