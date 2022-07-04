@@ -2,7 +2,12 @@
 
 packages <- c("tidyverse",
               "dplyr",
-              "lubridate")
+              "lubridate",
+              "Racmacs",
+              "ggplot2",
+              "ggpubr",
+              "cowplot",
+              "Racmacs")
 
 
 lapply(packages, library, character.only = TRUE)
