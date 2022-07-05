@@ -10,7 +10,7 @@ map2 <- optimizeMap(
   number_of_optimizations = 5000,
   minimum_column_basis = "none"
 )
-selectedOptimization(map)
+selectedOptimization(map2)
 
 view(map2)
 
@@ -43,11 +43,13 @@ dimensionTestMap(
   options = list()
 )
 
-antigentic_distance<-mapDistances(map)
+antigentic_distance<-mapDistances(map2)
 
 ## add color 
-agCoords(map, optimization_number = 1)%>%
-  setNames(c("ag_name","Dim1","Dim2"))%>%
-  merge(uga_titer_strain_filteryear,by=c("ag_strain_name","ag_strain_name"))
-  ggplot(aes(x=Dim1,y=Dim2,group=ag_collection_year, color=ag_colelction_year))+
+as.data.frame(agCoords(map2, optimization_number = 1))%>%
+  rownames_to_column()%>%
+  setNames(c("ag_strain_name","Dim1","Dim2"))%>%
+  merge(uga_titer_strain_filteryear,by=c("ag_strain_name","ag_strain_name"))%>%
+  ggplot(aes(x=Dim1,y=Dim2,group=ag_collection_year, color=as.factor(ag_collection_year)))+
   geom_point()
+  

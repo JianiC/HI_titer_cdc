@@ -128,15 +128,16 @@ rm_sr<-c('A/Brisbane/01/2018',
               'A/Texas/68/2017',
               'A/Wisconsin/19/2017')
 
-rm_ag<-c('A/Alaska/01/2011',
-         'A/Alaska/38/2018',
+rm_ag<-c('A/Alaska/05/2010',
          'A/Argentina/139/2014',
-         'A/Brazil/7920/2012',
+         'A/Argentina/92/2014',
          'A/California/16/2011',
-         'A/Florida/39/2014',
-         'A/Idaho/20/2012',
-         'A/Laos/348/2013',
-         'A/Michigan/482/2019',
+         'A/Florida/12/2012',
+         'A/Jamaica/3507/2019',
+         'A/Louisiana/26/2017',
+         'A/Michigan/483/2019',
+         'A/Texas/67/2018',
+         'A/Wisconsin/03/2020',
          'A/Virginia/03/2020')
 
 
