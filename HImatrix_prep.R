@@ -127,6 +127,11 @@ rm_sr<-c('A/Brisbane/01/2018',
               'A/Texas/50/2012 X-223',
               'A/Texas/68/2017',
               'A/Wisconsin/19/2017')
+## read the strain name that contains the sequence data
+ag_seq<-scan("filter_ag_strain.txt", what="", sep="\n")
+
+
+
 
 rm_ag<-c('A/Alaska/05/2010',
          'A/Argentina/139/2014',
@@ -147,7 +152,7 @@ uga_titer_2020_H3%>%
   mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
   distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
   filter(ag_strain_name %in% uga_titer_strain_filteryear$ag_strain_name)%>%
-  filter(!(ag_strain_name %in% rm_ag))%>%
+  filter(ag_strain_name %in% ag_seq)%>%
   filter(!(sr_strain_name %in% rm_sr))%>%
   select(ag_strain_name,sr_strain_name,titer_value)%>%
   spread(key = "sr_strain_name", value = "titer_value")%>%
