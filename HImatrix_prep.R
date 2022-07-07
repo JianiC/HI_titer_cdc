@@ -8,7 +8,6 @@ HI_titer_raw %>%
   mutate(ag_collection_date2=as_date(ag_collection_date,format="%m/%d/%y"))%>%
   filter(ag_collection_date2>="2010-9-1" & ag_collection_date2 <= "2020-5-1")-> uga_titer_2020_H3
 
-
 uga_titer_2020_H3%>%
   mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
   distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
@@ -22,18 +21,35 @@ uga_titer_2020_H3%>%
   group_by(sr_strain_name)%>%
   summarise(count=n())->sr_strain_count
 
+#######################################
+## combine sr_strain_name
+
+#write.csv(sr_strain_count,"sr_strain_name.csv",row.names=FALSE)
+#write.csv(ag_srcount,"ag_strain_name.csv",row.names=FALSE)
+sr_strain<-read.csv("sr_strain_name.csv")
+ag_strain<-read.csv("ag_strain_name.csv")
+## translate sr_strain_name
+sr_strain%>%
+  select(-count)%>%
+  merge(uga_titer_2020_H3,by=c("sr_strain_name","sr_strain_name"))%>%
+  merge(ag_strain,by=c("ag_strain_name","ag_strain_name"))->uga_titer_2020_H3
+
+
+
+
+
 ## all sequence matrix
 uga_titer_2020_H3%>%
-  mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
-  distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
-  select(ag_strain_name,sr_strain_name,titer_value)%>%
-  spread(key = "sr_strain_name", value = "titer_value")%>%
+  mutate(ag_strain_name2=gsub(" ","_",ag_strain_name2))%>%
+  distinct(ag_epi_isolate_id,sr_epi_isolate_id,.keep_all= TRUE)%>%
+  select(ag_epi_isolate_id,sr_epi_isolate_id,titer_value)%>%
+  spread(key = "sr_epi_isolate_id", value = "titer_value")%>%
   mutate_all(~replace(., is.na(.), "*"))->test_matrix
 
 uga_titer_2020_H3%>%
   mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
-  distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
-  select(ag_strain_name,sr_strain_name,titer_value)%>%
+  distinct(ag_strain_name,sr_epi_isolate_id,.keep_all= TRUE)%>%
+  select(ag_epi_isolate_id,sr_strain_name,titer_value)%>%
   group_by(ag_strain_name)%>%
   summarise(count=n())%>%
   ggplot(aes(x=count))+
@@ -42,107 +58,83 @@ uga_titer_2020_H3%>%
 
 ## get strain name 
 
+
 uga_titer_2020_H3%>%
-  mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
-  distinct(ag_strain_name,.keep_all= TRUE)%>%
-  mutate(ag_strain_taxa=paste0(ag_epi_isolate_id,"|",ag_strain_name))->uga_titer_strain_2020_H3
+  distinct(ag_epi_isolate_id)->uga_titer_strain_2020_H3
+
+
 
 write.table(uga_titer_2020_H3$ag_strain_taxa,"HI_titer_strain.txt",sep="\t",row.names=FALSE)
+
 
 write.csv(test_matrix,"2010_2020_raw_titer.csv",row.names = FALSE)
 
 ################################################################
 ## filter the sequence with high accuracy
 
-uga_titer_strain_2020_H3%>%
+uga_titer_2020_H3%>%
+  mutate(ag_strain_name2=gsub(" ","_",ag_strain_name2))%>%
   merge(ag_srcount,by=c("ag_strain_name","ag_strain_name"))%>%
   mutate(ag_collection_year=year(ag_collection_date2))%>%
-  arrange(desc(titer_value,sr_count))%>%
+  distinct(ag_epi_isolate_id,.keep_all= TRUE)%>%
+  #arrange(desc(titer_value,sr_count))%>%
   group_by(ag_collection_year)%>%
-  slice(1:40)->uga_titer_strain_filteryear
+  slice_sample(n=30)->uga_titer_strain_filteryear
 
 uga_titer_2020_H3%>%
-  mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
-  distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
-  filter(ag_strain_name %in% uga_titer_strain_filteryear$ag_strain_name)%>%
-  
-  select(ag_strain_name,sr_strain_name,titer_value)%>%
-  spread(key = "sr_strain_name", value = "titer_value")%>%
+  mutate(ag_strain_name2=gsub(" ","_",ag_strain_name2))%>%
+  distinct(ag_epi_isolate_id,sr_epi_isolate_id,.keep_all= TRUE)%>%
+  filter(ag_epi_isolate_id %in% uga_titer_strain_filteryear$ag_epi_isolate_id)%>%
+  select(ag_epi_isolate_id,sr_epi_isolate_id,titer_value)%>%
+  spread(key = "sr_epi_isolate_id", value = "titer_value")%>%
   mutate_all(~replace(., is.na(.), "*"))->HI_titer_filter_matrix
 
 ## get sequence to test
 
-
+names(HI_titer_filter_matrix)[1] <- ""
 write.csv(HI_titer_filter_matrix,"2010_2020_raw_titer_filter.csv",row.names = FALSE)
 write.table(uga_titer_strain_filteryear$ag_strain_taxa,"HI_titer_yearfilter_strain.txt",sep="\t",row.names=FALSE)
 
 ## from test 1
 
-rm_sr<-c('A/Brisbane/01/2018',
-              'A/Brisbane/1/2018 X-311A',
-              'A/Brisbane/29/2017',
-              'A/Greece/4/2017',
-              'A/Hawaii/22/2012 X-225A',
-              'A/Hong Kong/5738/2014',
-              'A/Hong Kong/681/2018',
-              'A/Idaho/33/2016 X-293',
-              'A/Kansas/14/2017 CBER-22B',
-              'A/New Jersey/26/2014',
-              'A/New York/46/2018',
-              'A/Newcastle/82/2018',
-              'A/North Carolina/13/2014 X-255A',
-              'A/Norway/3275/2018',
-              'A/Norway/3806/2016 CBER-08 C1.4',
-              'A/Singapore/GP2646/2016',
-              'A/Switzerland/9715293/2013 FA2337',
-              'A/Switzerland/9715293/2013 FB2119',
-              'A/Sydney/53/2019',
-              'A/Uruguay/43/2017',
-              'A/Victoria/361/2011 X-217',
-              'A/Victoria/361/2011 X-217A',
-              'A/Victoria/505/2013',
-              'A/Washington/04/2017',
-              'A/Washington/16/2017 X-301',
-              'A/Washington/16/2017 X-301A',
-              'A/Wisconsin/95/2018',
-              'A/Abu Dhabi/240/2018 X-325',
-              'A/Alaska/232/2015 X-289',
-              'A/Alaska/240/2015',
-              'A/American Samoa/4786/2013',
-              'A/Arizona/45/2018',
-              'A/Delaware/32/2016',
-              'A/Delaware/41/2019',
-              'A/Hawaii/22/2012 X-225',
-              'A/Hong Kong/4801/2014 CDC-LV15A',
-              'A/Kansas/14/2017 X-327A',
-              'A/Maryland/3/2014',
-              'A/Montana/18/2019',
-              'A/Nebraska/19/2015',
-              'A/Netherlands/10260/2018',
-              'A/Ohio/02/2012 X-221',
-              'A/Palau/6759/2014 X-245',
-              'A/Palau/6759/2014 X-245A',
-              'A/SOUTH AUSTRALIA/2/2019-CDC-LV26A',
-              'A/Switzerland/8060/2017',
-              'A/Texas/50/2012 X-223',
-              'A/Texas/68/2017',
-              'A/Wisconsin/19/2017')
+rm_sr<-c('A/Alaska/01/2021',
+         'A/Arizona/45/2018',
+         'A/Brisbane/190/2017',
+         'A/California/213/2016',
+         'A/California/55/2020',
+         'A/Cambodia/E0826360/2020',
+         'A/Darwin/6/2021',
+         'A/Darwin/9/2021',
+         'A/Delaware/01/2021',
+         'A/Greece/4/2017',
+         'A/Honduras/0188/2017',
+         'A/Hong Kong/681/2018',
+         'A/Kentucky/04/2012',
+         'A/Maryland/02/2021',
+         'A/Maryland/07/2018',
+         'A/Michigan/173/2020',
+         'A/Netherlands/10260/2018',
+         'A/New York/46/2018',
+         'A/Norway/3275/2018',
+         'A/Singapore/GP2646/2016',
+         'A/Sydney/22/2018',
+         'A/Sydney/53/2019',
+         'A/Texas/68/2017',
+         'A/Togo/771/2020',
+         'A/Uruguay/43/2017',
+         'A/Washington/04/2017',
+         'A/Wisconsin/02/2021',
+         'A/Alaska/240/2015',
+         'A/Hong Kong/2286/2017',
+         'A/Hong Kong/5738/2014',
+         'A/Maryland/3/2014')
 ## read the strain name that contains the sequence data
 ag_seq<-scan("filter_ag_strain.txt", what="", sep="\n")
 
 
 
 
-rm_ag<-c('A/Alaska/05/2010',
-         'A/Argentina/139/2014',
-         'A/Argentina/92/2014',
-         'A/California/16/2011',
-         'A/Florida/12/2012',
-         'A/Jamaica/3507/2019',
-         'A/Louisiana/26/2017',
-         'A/Michigan/483/2019',
-         'A/Texas/67/2018',
-         'A/Wisconsin/03/2020',
+rm_ag<-c(
          'A/Virginia/03/2020')
 
 
@@ -150,13 +142,14 @@ rm_ag<-c('A/Alaska/05/2010',
 
 uga_titer_2020_H3%>%
   mutate(ag_strain_name=gsub(" ","_",ag_strain_name))%>%
-  distinct(ag_strain_name,sr_strain_name,.keep_all= TRUE)%>%
+  distinct(ag_strain_name,sr_strain_name2,.keep_all= TRUE)%>%
   filter(ag_strain_name %in% uga_titer_strain_filteryear$ag_strain_name)%>%
-  filter(ag_strain_name %in% ag_seq)%>%
+  #filter(ag_strain_name %in% ag_seq)%>%
   filter(!(sr_strain_name %in% rm_sr))%>%
-  select(ag_strain_name,sr_strain_name,titer_value)%>%
-  spread(key = "sr_strain_name", value = "titer_value")%>%
+  filter(!(ag_strain_name %in% rm_ag))%>%
+  select(ag_strain_name,sr_strain_name2,titer_value)%>%
+  spread(key = "sr_strain_name2", value = "titer_value")%>%
   mutate_all(~replace(., is.na(.), "*"))->HI_titer_filter_matrix2
 
-
+names(HI_titer_filter_matrix2)[1] <- ""
 write.csv(HI_titer_filter_matrix2,"2010_2020_raw_titer_filter2.csv",row.names = FALSE)

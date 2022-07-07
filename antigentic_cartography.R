@@ -2,7 +2,7 @@
 # devtools::install_github("YuLab-SMU/ggacmap")
 #library(ggacmap)
 #remotes::install_url("https://github.com/acorg/acmacs.r/releases/download/v4.6/acmacs.r_4.6_R_macOS-10.14.tgz", build = FALSE)
-#devtools::install_github("acorg/Racmacs")
+devtools::install_github("acorg/Racmacs")
 library(Racmacs)
 map_file <- system.file("extdata/h3map2004.ace", package = "Racmacs")
 map <- read.acmap(map_file)

@@ -419,5 +419,4 @@ A/Manitoba/RV5046/2020
 A/Guyane/317/2020
 A/Haiti/304/2020
 A/Haiti/277/2020
-A/Virginia/03/2020
 A/Minas_Gerais/12710/2020

@@ -7,7 +7,8 @@ packages <- c("tidyverse",
               "ggplot2",
               "ggpubr",
               "cowplot",
-              "Racmacs")
+              "Racmacs",
+              "RColorBrewer")
 
 
 lapply(packages, library, character.only = TRUE)
